@@ -1,0 +1,37 @@
+version: '3.8'
+
+services:
+  database:
+    image: mysql:5.7
+    container_name: crudmysql_database_container
+    ports:
+      - "3306:3306"
+    volumes:
+      - ./database/init.sql:/data/application/init.sql
+    command: --init-file /data/application/init.sql
+    environment:
+      MYSQL_ROOT_USER: root
+      MYSQL_ROOT_PASSWORD: passwordDeAdmin
+      MYSQL_DATABASE: dbname
+      MYSQL_USER: miguel
+      MYSQL_PASSWORD: miguelpassword
+    networks:
+      - crud_net
+
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: start
+    container_name: crudmysql_web_container
+    ports:
+      - "3000:3000"
+    depends_on:
+      - database
+    command: sh -c './usr/src/app/wait-for-it.sh -t 0 database:3306 -- npm start'
+    networks:
+      - crud_net
+
+networks:
+  crud_net:
+    driver: bridge
